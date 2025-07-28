@@ -5,9 +5,10 @@ const Agent1 = () => {
     campaignName: ''
   });
   
-  const [emailBodyA, setEmailBodyA] = useState('');
-  const [emailBodyB, setEmailBodyB] = useState('');
-  const [dynamicResult, setDynamicResult] = useState('');
+  const [emailBodyA, setEmailBodyA] = useState('Loading...');
+  const [emailBodyB, setEmailBodyB] = useState('Loading...');
+  const [dynamicResult, setDynamicResult] = useState('Loading...');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -17,27 +18,63 @@ const Agent1 = () => {
     }));
   };
 
-  const generateResult = () => {
-    // Simulate AI processing
-    const result = `
-Campaign Analysis Results:
 
-Campaign Name: ${campaignDetails.campaignName}
 
-A/B Testing Analysis:
-- Version A: ${emailBodyA.length} characters
-- Version B: ${emailBodyB.length} characters
+  const fetchEmailData = async () => {
+    const API_BASE = "http://localhost:3000";
+    const types = ['emailA', 'emailB', 'result'];
 
-Recommendations:
-${emailBodyA.length > emailBodyB.length ? 'Version A is more detailed' : 'Version B is more concise'}
+    for (const type of types) {
+      try {
+        const res = await fetch(`${API_BASE}/${type}`);
+        const data = await res.json();
 
-Suggested improvements:
-- Add call-to-action buttons
-- Include personalization tokens
-- Optimize for mobile viewing
-- Test different send times
-    `;
-    setDynamicResult(result);
+        // Extract only values, no keys or brackets
+        const plainText = data.map(obj => Object.values(obj).join('\n')).join('\n\n');
+        
+        if (type === 'emailA') {
+          setEmailBodyA(plainText || 'No data yet.');
+        } else if (type === 'emailB') {
+          setEmailBodyB(plainText || 'No data yet.');
+        } else if (type === 'result') {
+          setDynamicResult(plainText || 'No data yet.');
+        }
+      } catch (err) {
+        console.error(`Error fetching ${type}:`, err);
+        if (type === 'emailA') {
+          setEmailBodyA('Error loading data.');
+        } else if (type === 'emailB') {
+          setEmailBodyB('Error loading data.');
+        } else if (type === 'result') {
+          setDynamicResult('Error loading data.');
+        }
+      }
+    }
+  };
+
+  const sendToWebhook = async () => {
+    setIsLoading(true);
+    const message = {
+      campaignName: campaignDetails.campaignName,
+      emailBodyA: emailBodyA,
+      emailBodyB: emailBodyB,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      await fetch('https://distinct-manually-lemming.ngrok-free.app/webhook-test/b19021d9-8e73-4ad5-88b5-603cd0510918', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      
+      // Fetch email data after successful webhook
+      await fetchEmailData();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -71,37 +108,37 @@ Suggested improvements:
           </h1>
           
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Specializes in email marketing campaigns, helping users create engaging 
-            and high-converting email content that drives results.
+            Transform your email marketing with AI-powered campaign optimization. 
+            Create compelling A/B test content that drives engagement and conversions.
           </p>
         </div>
         
         <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">About This Agent</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">How It Works</h2>
           <p className="text-gray-700 mb-8 text-lg">
-            Agent 1 specializes in email marketing campaigns, helping users create engaging 
-            and high-converting email content. From welcome series to promotional campaigns, 
-            this agent crafts compelling emails that drive engagement and conversions.
+            Our AI analyzes your campaign details and generates optimized email content for A/B testing. 
+            Simply enter your campaign information, and our system will create two distinct versions 
+            to maximize your email performance and conversion rates.
           </p>
           
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <div className="bg-blue-50 p-6 rounded-2xl">
-              <h3 className="text-lg font-semibold text-blue-800 mb-3">Key Features</h3>
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">What You Get</h3>
               <ul className="text-gray-700 space-y-2">
-                <li>• Email copywriting & optimization</li>
-                <li>• Subject line generation</li>
-                <li>• A/B testing suggestions</li>
-                <li>• Campaign automation</li>
+                <li>• AI-generated email content</li>
+                <li>• A/B testing versions</li>
+                <li>• Performance analytics</li>
+                <li>• Optimization insights</li>
               </ul>
             </div>
             
             <div className="bg-green-50 p-6 rounded-2xl">
-              <h3 className="text-lg font-semibold text-green-800 mb-3">Use Cases</h3>
+              <h3 className="text-lg font-semibold text-green-800 mb-3">Perfect For</h3>
               <ul className="text-gray-700 space-y-2">
-                <li>• Welcome email series</li>
-                <li>• Promotional campaigns</li>
-                <li>• Newsletter creation</li>
-                <li>• Abandoned cart emails</li>
+                <li>• Marketing campaigns</li>
+                <li>• Product launches</li>
+                <li>• Newsletter content</li>
+                <li>• Promotional emails</li>
               </ul>
             </div>
           </div>
@@ -109,7 +146,8 @@ Suggested improvements:
 
         {/* Campaign Details Form */}
         <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Campaign Details</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Start Your Campaign</h2>
+          <p className="text-gray-600 mb-6 text-center">Describe your email campaign and we'll generate optimized content for you.</p>
           
           <div className="max-w-md mx-auto">
             <div>
@@ -118,7 +156,7 @@ Suggested improvements:
                 value={campaignDetails.campaignName}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none min-h-[48px]"
-                placeholder="Enter campaign details..."
+                placeholder="Describe your campaign: target audience, goals, product/service..."
                 style={{ height: 'auto', minHeight: '48px' }}
                 onInput={(e) => {
                   e.target.style.height = 'auto';
@@ -126,21 +164,32 @@ Suggested improvements:
                 }}
               />
             </div>
+            
+            <div className="text-center mt-6">
+              <button 
+                onClick={sendToWebhook}
+                disabled={isLoading}
+                className="inline-flex items-center justify-center gap-2 font-medium transition-colors bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-lg px-12 py-6 rounded-2xl shadow-colored"
+              >
+                {isLoading ? 'Generating Content...' : 'Generate Email Content'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* A/B Email Body Columns */}
         <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">A/B Email Body</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Generated Email Content</h2>
+          <p className="text-gray-600 mb-6 text-center">Your AI-generated email versions for A/B testing</p>
           
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-lg font-semibold text-blue-800 mb-4">Version A</h3>
               <textarea
                 value={emailBodyA}
-                onChange={(e) => setEmailBodyA(e.target.value)}
-                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Write your email body content for version A..."
+                readOnly
+                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
+                placeholder="Email A content will be loaded automatically..."
               />
             </div>
             
@@ -148,21 +197,35 @@ Suggested improvements:
               <h3 className="text-lg font-semibold text-green-800 mb-4">Version B</h3>
               <textarea
                 value={emailBodyB}
-                onChange={(e) => setEmailBodyB(e.target.value)}
-                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                placeholder="Write your email body content for version B..."
+                readOnly
+                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
+                placeholder="Email B content will be loaded automatically..."
               />
             </div>
           </div>
         </div>
 
+
+
         {/* Dynamic Result Textarea */}
         <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Performance Results</h2>
+          <p className="text-gray-600 mb-6 text-center">Track your campaign performance and optimization insights</p>
+          
           <textarea
-            value={dynamicResult}
+            value={dynamicResult === 'Loading...' ? 'Result will be displayed in 14 days' : dynamicResult}
             readOnly
-            className="w-full h-80 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
-            placeholder="Result will announce after 14 days..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
+            style={{ 
+              minHeight: '60px',
+              height: 'auto',
+              overflow: 'hidden'
+            }}
+            placeholder="Result will be displayed in 14 days..."
+            onLoad={(e) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = e.target.scrollHeight + 'px';
+            }}
           />
         </div>
       </div>
