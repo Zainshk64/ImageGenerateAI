@@ -35,9 +35,24 @@ const Navbar = () => {
             </ul>
           </div>
         </div>
-        <div>
-          <button className="cursor-pointer">Login</button>
-          <button className="bg-[#3377F2] cursor-pointer text-white p-2 rounded-md ml-5 " >Start Trial</button>
+        <div className="flex items-center gap-4">
+          <Link 
+            to="/login" 
+            className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium"
+          >
+            Login
+          </Link>
+          <Link 
+            to="/register" 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+          >
+            Sign Up
+          </Link>
+          <button 
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+          >
+            Start Trial
+          </button>
         </div>
       </div>
     </div>
