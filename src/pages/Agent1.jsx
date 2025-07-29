@@ -29,7 +29,7 @@ const Agent1 = () => {
 
 
   const fetchEmailData = async () => {
-    const API_BASE = "http://localhost:3000";
+    const API_BASE = "https://extra-production-980c.up.railway.app";
     const types = ['emailA', 'emailB', 'result'];
 
     for (const type of types) {
@@ -45,7 +45,7 @@ const Agent1 = () => {
         } else if (type === 'emailB') {
           setEmailBodyB(plainText || 'No data yet.');
         } else if (type === 'result') {
-          setDynamicResult(plainText || 'No data yet.');
+          setDynamicResult(plainText || 'Result will be displayed in 14 days');
         }
       } catch (err) {
         console.error(`Error fetching ${type}:`, err);
@@ -54,11 +54,36 @@ const Agent1 = () => {
         } else if (type === 'emailB') {
           setEmailBodyB('Error loading data.');
         } else if (type === 'result') {
-          setDynamicResult('Error loading data.');
+          setDynamicResult('Result will be displayed in 14 days');
         }
       }
     }
     setDataLoaded(true);
+  };
+
+  const waitForWorkflowCompletion = async () => {
+    const maxAttempts = 30; // 30 attempts with 2-second intervals = 1 minute max
+    const checkInterval = 2000; // 2 seconds between checks
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        // Check if data is available by trying to fetch emailA
+        const response = await fetch('https://extra-production-980c.up.railway.app/emailA');
+        const data = await response.json();
+        
+        // If we get meaningful data (not empty), workflow is complete
+        if (data && data.length > 0 && data[0] && Object.values(data[0]).some(val => val && val.toString().trim() !== '')) {
+          return true; // Workflow completed
+        }
+      } catch {
+        console.log('Workflow still processing...');
+      }
+      
+      // Wait before next check
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+    }
+    
+    return false; // Workflow didn't complete within time limit
   };
 
   const sendToWebhook = async () => {
@@ -71,15 +96,29 @@ const Agent1 = () => {
     };
 
     try {
-      await fetch('https://distinct-manually-lemming.ngrok-free.app/webhook-test/b19021d9-8e73-4ad5-88b5-603cd0510918', {
+      // Send webhook and wait for completion
+      const response = await fetch('https://distinct-manually-lemming.ngrok-free.app/webhook-test/b19021d9-8e73-4ad5-88b5-603cd0510918', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
       });
-      
-      // Fetch email data after successful webhook
-      await fetchEmailData();
-      showWebhookMessage('success', 'Webhook sent successfully! Email content generated.');
+
+      if (response.ok) {
+        showWebhookMessage('success', 'Webhook sent successfully! Processing email content...');
+        
+        // Wait for actual workflow completion
+        const workflowCompleted = await waitForWorkflowCompletion();
+        
+        if (workflowCompleted) {
+          // Now fetch the email data after workflow completion
+          await fetchEmailData();
+          showWebhookMessage('success', 'Email content generated successfully!');
+        } else {
+          showWebhookMessage('error', 'Workflow timed out. Please try again.');
+        }
+      } else {
+        throw new Error('Webhook failed');
+      }
     } catch (error) {
       console.error(error);
       showWebhookMessage('error', 'Failed to send webhook. Please try again.');
