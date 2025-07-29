@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Agent4 = () => {
+  const [file, setFile] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+  const [outputValue, setOutputValue] = useState('');
+  const [uploadMessage, setUploadMessage] = useState('');
+
   return (
     <div className="px-4 md:px-14 lg:px-24 py-8">
       <div className="max-w-4xl mx-auto">
@@ -62,6 +67,53 @@ const Agent4 = () => {
                 <li>• Session continuity</li>
                 <li>• Data persistence</li>
               </ul>
+            </div>
+          </div>
+          
+          <div className="text-center mb-8">
+            {/* File Upload */}
+            <div className="mb-4">
+              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Upload File (PDF only)</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={e => {
+                  const file = e.target.files[0];
+                  if (file && file.type === 'application/pdf') {
+                    setFile(file);
+                    setUploadMessage('PDF uploaded successfully!');
+                  } else {
+                    setFile(null);
+                    setUploadMessage('Please upload a valid PDF file.');
+                  }
+                }}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100"
+              />
+              {uploadMessage && (
+                <div className={`mt-2 text-sm ${uploadMessage.includes('successfully') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{uploadMessage}</div>
+              )}
+            </div>
+            {/* Input Field */}
+            <div className="mb-4">
+              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Input</label>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={e => setInputValue(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100"
+                placeholder="Enter input value"
+              />
+            </div>
+            {/* Output Field */}
+            <div className="mb-4">
+              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Output</label>
+              <input
+                type="text"
+                value={outputValue}
+                onChange={e => setOutputValue(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100"
+                placeholder="Enter output value"
+              />
             </div>
           </div>
           
