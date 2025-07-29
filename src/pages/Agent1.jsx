@@ -9,6 +9,8 @@ const Agent1 = () => {
   const [emailBodyB, setEmailBodyB] = useState('Loading...');
   const [dynamicResult, setDynamicResult] = useState('Loading...');
   const [isLoading, setIsLoading] = useState(false);
+  const [webhookMessage, setWebhookMessage] = useState({ show: false, type: '', text: '' });
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,6 +20,12 @@ const Agent1 = () => {
     }));
   };
 
+  const showWebhookMessage = (type, text) => {
+    setWebhookMessage({ show: true, type, text });
+    setTimeout(() => {
+      setWebhookMessage({ show: false, type: '', text: '' });
+    }, 3000);
+  };
 
 
   const fetchEmailData = async () => {
@@ -50,6 +58,7 @@ const Agent1 = () => {
         }
       }
     }
+    setDataLoaded(true);
   };
 
   const sendToWebhook = async () => {
@@ -70,8 +79,10 @@ const Agent1 = () => {
       
       // Fetch email data after successful webhook
       await fetchEmailData();
+      showWebhookMessage('success', 'Webhook sent successfully! Email content generated.');
     } catch (error) {
       console.error(error);
+      showWebhookMessage('error', 'Failed to send webhook. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +91,27 @@ const Agent1 = () => {
   return (
     <div className="px-4 md:px-14 lg:px-24 py-8">
       <div className="max-w-6xl mx-auto">
+        {/* Webhook Message */}
+        {webhookMessage.show && (
+          <div className={`fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transition-all duration-300 ${
+            webhookMessage.type === 'success' 
+              ? 'bg-green-500 text-white' 
+              : 'bg-red-500 text-white'
+          }`}>
+            <div className="flex items-center gap-2">
+              {webhookMessage.type === 'success' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              <span className="font-medium">{webhookMessage.text}</span>
+            </div>
+          </div>
+        )}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 glass-card text-blue-700 shadow px-3 py-3 rounded-full text-sm font-semibold mb-6">
             <svg
@@ -177,57 +209,47 @@ const Agent1 = () => {
           </div>
         </div>
 
-        {/* A/B Email Body Columns */}
-        <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Generated Email Content</h2>
-          <p className="text-gray-600 mb-6 text-center">Your AI-generated email versions for A/B testing</p>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold text-blue-800 mb-4">Version A</h3>
-              <textarea
-                value={emailBodyA}
-                readOnly
-                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
-                placeholder="Email A content will be loaded automatically..."
-              />
-            </div>
+        {/* A/B Email Body Columns - Only show after data is loaded */}
+        {dataLoaded && (
+          <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Generated Email Content</h2>
+            <p className="text-gray-600 mb-6 text-center">Your AI-generated email versions for A/B testing</p>
             
-            <div>
-              <h3 className="text-lg font-semibold text-green-800 mb-4">Version B</h3>
-              <textarea
-                value={emailBodyB}
-                readOnly
-                className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
-                placeholder="Email B content will be loaded automatically..."
-              />
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">Version A</h3>
+                <div className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 overflow-y-auto">
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                    {emailBodyA}
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold text-green-800 mb-4">Version B</h3>
+                <div className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 overflow-y-auto">
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                    {emailBodyB}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-
-
-        {/* Dynamic Result Textarea */}
-        <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Performance Results</h2>
-          <p className="text-gray-600 mb-6 text-center">Track your campaign performance and optimization insights</p>
-          
-          <textarea
-            value={dynamicResult === 'Loading...' ? 'Result will be displayed in 14 days' : dynamicResult}
-            readOnly
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 resize-none"
-            style={{ 
-              minHeight: '60px',
-              height: 'auto',
-              overflow: 'hidden'
-            }}
-            placeholder="Result will be displayed in 14 days..."
-            onLoad={(e) => {
-              e.target.style.height = 'auto';
-              e.target.style.height = e.target.scrollHeight + 'px';
-            }}
-          />
-        </div>
+        {/* Dynamic Result Display - Only show after data is loaded */}
+        {dataLoaded && (
+          <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Performance Results</h2>
+            <p className="text-gray-600 mb-6 text-center">Track your campaign performance and optimization insights</p>
+            
+            <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 min-h-[60px]">
+              <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                {dynamicResult === 'Loading...' ? 'Result will be displayed in 14 days' : dynamicResult}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
