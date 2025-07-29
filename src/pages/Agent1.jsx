@@ -61,31 +61,6 @@ const Agent1 = () => {
     setDataLoaded(true);
   };
 
-  const waitForWorkflowCompletion = async () => {
-    const maxAttempts = 30; // 30 attempts with 2-second intervals = 1 minute max
-    const checkInterval = 2000; // 2 seconds between checks
-    
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        // Check if data is available by trying to fetch emailA
-        const response = await fetch('https://extra-production-980c.up.railway.app/emailA');
-        const data = await response.json();
-        
-        // If we get meaningful data (not empty), workflow is complete
-        if (data && data.length > 0 && data[0] && Object.values(data[0]).some(val => val && val.toString().trim() !== '')) {
-          return true; // Workflow completed
-        }
-      } catch {
-        console.log('Workflow still processing...');
-      }
-      
-      // Wait before next check
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
-    }
-    
-    return false; // Workflow didn't complete within time limit
-  };
-
   const sendToWebhook = async () => {
     setIsLoading(true);
     const message = {
@@ -106,16 +81,12 @@ const Agent1 = () => {
       if (response.ok) {
         showWebhookMessage('success', 'Webhook sent successfully! Processing email content...');
         
-        // Wait for actual workflow completion
-        const workflowCompleted = await waitForWorkflowCompletion();
+        // Wait a moment for the workflow to complete
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        if (workflowCompleted) {
-          // Now fetch the email data after workflow completion
-          await fetchEmailData();
-          showWebhookMessage('success', 'Email content generated successfully!');
-        } else {
-          showWebhookMessage('error', 'Workflow timed out. Please try again.');
-        }
+        // Now fetch the email data after workflow completion
+        await fetchEmailData();
+        showWebhookMessage('success', 'Email content generated successfully!');
       } else {
         throw new Error('Webhook failed');
       }
