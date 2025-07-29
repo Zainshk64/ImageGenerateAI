@@ -11,6 +11,8 @@ const Agent1 = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [webhookMessage, setWebhookMessage] = useState({ show: false, type: '', text: '' });
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -28,37 +30,111 @@ const Agent1 = () => {
   };
 
 
-  const fetchEmailData = async () => {
+  const pollForEmailData = async () => {
     const API_BASE = "https://extra-production-980c.up.railway.app";
-    const types = ['emailA', 'emailB', 'result'];
-
-    for (const type of types) {
+    let attempts = 0;
+    const maxAttempts = 15; // 5 minutes max (15 * 20 seconds)
+    let isPollingActive = true; // Flag to control polling
+    
+    const checkEmailData = async () => {
+      if (!isPollingActive) return; // Stop if polling was cancelled
+      
       try {
-        const res = await fetch(`${API_BASE}/${type}`);
-        const data = await res.json();
-
-        // Extract only values, no keys or brackets
-        const plainText = data.map(obj => Object.values(obj).join('\n')).join('\n\n');
+        const emailARes = await fetch(`${API_BASE}/emailA`);
+        const emailBRes = await fetch(`${API_BASE}/emailB`);
         
-        if (type === 'emailA') {
-          setEmailBodyA(plainText || 'No data yet.');
-        } else if (type === 'emailB') {
-          setEmailBodyB(plainText || 'No data yet.');
-        } else if (type === 'result') {
-          setDynamicResult(plainText || 'Result will be displayed in 14 days');
+        // Check response status and content type
+        if (!emailARes.ok || !emailBRes.ok) {
+          console.error('API Error - EmailA status:', emailARes.status, 'EmailB status:', emailBRes.status);
+          throw new Error(`API returned status ${emailARes.status} or ${emailBRes.status}`);
+        }
+        
+        // Check content type
+        const emailAContentType = emailARes.headers.get('content-type');
+        const emailBContentType = emailBRes.headers.get('content-type');
+        
+        if (!emailAContentType?.includes('application/json') || !emailBContentType?.includes('application/json')) {
+          console.error('Invalid content type - EmailA:', emailAContentType, 'EmailB:', emailBContentType);
+          throw new Error('API returned non-JSON response');
+        }
+        
+        const emailAData = await emailARes.json();
+        const emailBData = await emailBRes.json();
+        
+        // Check if both endpoints have data with Body field (not empty arrays)
+        const emailAText = emailAData && emailAData.length > 0 && emailAData[0].Body ? emailAData[0].Body : '';
+        const emailBText = emailBData && emailBData.length > 0 && emailBData[0].Body ? emailBData[0].Body : '';
+        
+        console.log('EmailA response:', emailAData);
+        console.log('EmailB response:', emailBData);
+        
+        if (emailAText && emailBText) {
+          // Data is ready, fetch all data
+          setEmailBodyA(emailAText);
+          setEmailBodyB(emailBText);
+          
+          // Fetch result data
+          try {
+            const resultRes = await fetch(`${API_BASE}/result`);
+            if (resultRes.ok) {
+              const resultData = await resultRes.json();
+              const resultText = resultData && resultData.length > 0 && resultData[0].Body ? resultData[0].Body : 'Result will be displayed in 14 days';
+              setDynamicResult(resultText);
+            } else {
+              setDynamicResult('Result will be displayed in 14 days');
+            }
+          } catch {
+            setDynamicResult('Result will be displayed in 14 days');
+          }
+          
+          setShowSkeleton(false);
+          setDataLoaded(true);
+          setIsPolling(false);
+          isPollingActive = false; // Stop polling
+          showWebhookMessage('success', 'Data retrieved successfully! Email content is ready.');
+          return true;
+        } else {
+          attempts++;
+          console.log(`Attempt ${attempts}: Waiting for data... EmailA: ${emailAText ? 'has data' : 'empty'}, EmailB: ${emailBText ? 'has data' : 'empty'}`);
+          if (attempts < maxAttempts && isPollingActive) {
+            // Wait 20 seconds and try again
+            setTimeout(checkEmailData, 20000);
+          } else if (isPollingActive) {
+            // Timeout after 10 minutes
+            setShowSkeleton(false);
+            setEmailBodyA('No data available after timeout.');
+            setEmailBodyB('No data available after timeout.');
+            setDynamicResult('Result will be displayed in 14 days');
+            setDataLoaded(true);
+            setIsPolling(false);
+            isPollingActive = false; // Stop polling
+            showWebhookMessage('error', 'Timeout: No data received after 10 minutes.');
+          }
         }
       } catch (err) {
-        console.error(`Error fetching ${type}:`, err);
-        if (type === 'emailA') {
+        console.error('Error polling for email data:', err);
+        console.error('API Base URL:', API_BASE);
+        console.error('Full error details:', err.message);
+        
+        attempts++;
+        if (attempts < maxAttempts && isPollingActive) {
+          setTimeout(checkEmailData, 20000);
+        } else if (isPollingActive) {
+          setShowSkeleton(false);
           setEmailBodyA('Error loading data.');
-        } else if (type === 'emailB') {
           setEmailBodyB('Error loading data.');
-        } else if (type === 'result') {
           setDynamicResult('Result will be displayed in 14 days');
+          setDataLoaded(true);
+          setIsPolling(false);
+          isPollingActive = false; // Stop polling
+          showWebhookMessage('error', 'Failed to load email data after multiple attempts.');
         }
       }
-    }
-    setDataLoaded(true);
+    };
+    
+    // Start polling
+    setIsPolling(true);
+    checkEmailData();
   };
 
   const sendToWebhook = async () => {
@@ -71,8 +147,14 @@ const Agent1 = () => {
     };
 
     try {
+      // First, hit the empty endpoint
+      await fetch('https://extra-production-980c.up.railway.app/empty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
       // Send webhook and wait for completion
-      const response = await fetch('https://distinct-manually-lemming.ngrok-free.app/webhook-test/b19021d9-8e73-4ad5-88b5-603cd0510918', {
+      const response = await fetch('https://distinct-manually-lemming.ngrok-free.app/webhook/b19021d9-8e73-4ad5-88b5-603cd0510918', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
@@ -81,18 +163,18 @@ const Agent1 = () => {
       if (response.ok) {
         showWebhookMessage('success', 'Webhook sent successfully! Processing email content...');
         
-        // Wait a moment for the workflow to complete
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Show skeleton loading
+        setShowSkeleton(true);
         
-        // Now fetch the email data after workflow completion
-        await fetchEmailData();
-        showWebhookMessage('success', 'Email content generated successfully!');
+        // Start polling for email data
+        pollForEmailData();
       } else {
         throw new Error('Webhook failed');
       }
     } catch (error) {
       console.error(error);
       showWebhookMessage('error', 'Failed to send webhook. Please try again.');
+      setShowSkeleton(false);
     } finally {
       setIsLoading(false);
     }
@@ -210,17 +292,17 @@ const Agent1 = () => {
             <div className="text-center mt-6">
               <button 
                 onClick={sendToWebhook}
-                disabled={isLoading}
+                disabled={isLoading || isPolling}
                 className="inline-flex items-center justify-center gap-2 font-medium transition-colors bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-lg px-12 py-6 rounded-2xl shadow-colored"
               >
-                {isLoading ? 'Generating Content...' : 'Generate Email Content'}
+                {isLoading ? 'Generating Content...' : isPolling ? 'Waiting for Data...' : 'Generate Email Content'}
               </button>
             </div>
           </div>
         </div>
 
         {/* A/B Email Body Columns - Only show after data is loaded */}
-        {dataLoaded && (
+        {dataLoaded && !showSkeleton && (
           <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Generated Email Content</h2>
             <p className="text-gray-600 mb-6 text-center">Your AI-generated email versions for A/B testing</p>
@@ -247,8 +329,54 @@ const Agent1 = () => {
           </div>
         )}
 
+        {/* Loading Skeleton */}
+        {showSkeleton && (
+          <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Generated Email Content</h2>
+            <p className="text-gray-600 mb-6 text-center">Your AI-generated email versions for A/B testing</p>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">Version A</h3>
+                <div className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 overflow-hidden">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-5/6"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-2/3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-5/6"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-2/3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold text-green-800 mb-4">Version B</h3>
+                <div className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 overflow-hidden">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-2/3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-5/6"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-4/5"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-2/3"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-5/6"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-3 w-4/5"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Dynamic Result Display - Only show after data is loaded */}
-        {dataLoaded && (
+        {dataLoaded && !showSkeleton && (
           <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Performance Results</h2>
             <p className="text-gray-600 mb-6 text-center">Track your campaign performance and optimization insights</p>
@@ -256,6 +384,22 @@ const Agent1 = () => {
             <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 min-h-[60px]">
               <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
                 {dynamicResult === 'Loading...' ? 'Result will be displayed in 14 days' : dynamicResult}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Performance Results Skeleton */}
+        {showSkeleton && (
+          <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Performance Results</h2>
+            <p className="text-gray-600 mb-6 text-center">Track your campaign performance and optimization insights</p>
+            
+            <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 min-h-[60px]">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                <div className="h-4 bg-gray-200 rounded mb-3 w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-3 w-5/6"></div>
               </div>
             </div>
           </div>
