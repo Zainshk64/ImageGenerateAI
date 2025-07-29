@@ -96,32 +96,43 @@ const Agent4 = () => {
             {/* Input Field */}
             <div className="mb-4">
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Input</label>
-              <input
-                type="text"
+              <textarea
                 value={inputValue}
-                onChange={e => setInputValue(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100"
+                onChange={e => {
+                  setInputValue(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100 resize-none min-h-[48px]"
                 placeholder="Enter input value"
+                style={{ height: 'auto', minHeight: '48px', overflow: 'hidden' }}
               />
             </div>
+
+            <div className="text-center">
+            <button className="inline-flex items-center justify-center gap-2 font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white text-lg px-12 py-2 rounded-2xl shadow-colored">
+              Send
+            </button>
+          </div>
+              
             {/* Output Field */}
             <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-200">Output</label>
-              <input
-                type="text"
+              <label className="mt-10 block mb-2 font-medium text-gray-700 dark:text-gray-200">Output</label>
+              <textarea
                 value={outputValue}
-                onChange={e => setOutputValue(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100"
+                onChange={e => {
+                  setOutputValue(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = e.target.scrollHeight + 'px';
+                }}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-100 resize-none min-h-[48px]"
                 placeholder="Enter output value"
+                style={{ height: 'auto', minHeight: '48px', overflow: 'hidden' }}
               />
             </div>
           </div>
           
-          <div className="text-center">
-            <button className="inline-flex items-center justify-center gap-2 font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white text-lg px-12 py-6 rounded-2xl shadow-colored">
-              Start Using Agent 4
-            </button>
-          </div>
+          
         </div>
       </div>
     </div>
