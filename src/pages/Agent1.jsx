@@ -13,6 +13,7 @@ const Agent1 = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
+  const [currentCampaignName, setCurrentCampaignName] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -73,19 +74,11 @@ const Agent1 = () => {
           setEmailBodyA(emailAText);
           setEmailBodyB(emailBText);
           
-          // Fetch result data
-          try {
-            const resultRes = await fetch(`${API_BASE}/result`);
-            if (resultRes.ok) {
-              const resultData = await resultRes.json();
-              const resultText = resultData && resultData.length > 0 && resultData[0].Body ? resultData[0].Body : 'Result will be displayed in 14 days';
-              setDynamicResult(resultText);
-            } else {
-              setDynamicResult('Result will be displayed in 14 days');
-            }
-          } catch {
-            setDynamicResult('Result will be displayed in 14 days');
-          }
+          // Set result message
+          setDynamicResult('Result will be sent via email in 14 days');
+          
+          // Clear the input field
+          setCampaignDetails({ campaignName: '' });
           
           setShowSkeleton(false);
           setDataLoaded(true);
@@ -104,7 +97,7 @@ const Agent1 = () => {
             setShowSkeleton(false);
             setEmailBodyA('No data available after timeout.');
             setEmailBodyB('No data available after timeout.');
-            setDynamicResult('Result will be displayed in 14 days');
+            setDynamicResult('Result will be sent via email in 14 days');
             setDataLoaded(true);
             setIsPolling(false);
             isPollingActive = false; // Stop polling
@@ -123,7 +116,7 @@ const Agent1 = () => {
           setShowSkeleton(false);
           setEmailBodyA('Error loading data.');
           setEmailBodyB('Error loading data.');
-          setDynamicResult('Result will be displayed in 14 days');
+          setDynamicResult('Result will be sent via email in 14 days');
           setDataLoaded(true);
           setIsPolling(false);
           isPollingActive = false; // Stop polling
@@ -139,6 +132,9 @@ const Agent1 = () => {
 
   const sendToWebhook = async () => {
     setIsLoading(true);
+    // Store the current campaign name before clearing
+    setCurrentCampaignName(campaignDetails.campaignName);
+    
     const message = {
       campaignName: campaignDetails.campaignName,
       emailBodyA: emailBodyA,
@@ -306,6 +302,14 @@ const Agent1 = () => {
           <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Generated Email Content</h2>
             <p className="text-gray-600 mb-6 text-center">Your AI-generated email versions for A/B testing</p>
+            <div className="text-center mb-6">
+              <div className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-xl text-sm font-medium max-w-4xl">
+                <div className="font-semibold mb-1">Results for:</div>
+                <div className="text-blue-700 break-words">
+                  {currentCampaignName || 'Campaign'}
+                </div>
+              </div>
+            </div>
             
             <div className="grid md:grid-cols-2 gap-8">
               <div>
@@ -383,7 +387,7 @@ const Agent1 = () => {
             
             <div className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 min-h-[60px]">
               <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                {dynamicResult === 'Loading...' ? 'Result will be displayed in 14 days' : dynamicResult}
+                {dynamicResult === 'Loading...' ? 'Result will be sent via email in 14 days' : dynamicResult}
               </div>
             </div>
           </div>
