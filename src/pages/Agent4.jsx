@@ -52,6 +52,9 @@ const Agent4 = () => {
       });
 
       if (response.ok) {
+        const uploadResponse = await response.json();
+        console.log('📤 PDF Upload Response:', uploadResponse);
+        
         showWebhookMessage('success', 'PDF uploaded successfully to server!');
         setPdfUploaded(true);
         setUploadMessage('PDF successfully uploaded to server! Processing...');
@@ -67,6 +70,8 @@ const Agent4 = () => {
           }, 5000);
         }, 10000);
       } else {
+        const errorResponse = await response.text();
+        console.error('❌ PDF Upload Error Response:', errorResponse);
         throw new Error('Upload failed');
       }
     } catch (error) {
@@ -108,7 +113,7 @@ const Agent4 = () => {
         // Check if output endpoint has data
         const outputText = outputData && outputData.length > 0 && outputData[0].Body ? outputData[0].Body : '';
         
-        console.log('Output response:', outputData);
+        console.log('📥 Output Polling Response:', outputData);
         
         if (outputText) {
           // Data is ready
@@ -121,7 +126,7 @@ const Agent4 = () => {
           return true;
         } else {
           attempts++;
-          console.log(`Attempt ${attempts}: Waiting for output data...`);
+          console.log(`⏳ Attempt ${attempts}/${maxAttempts}: Waiting for output data...`);
           if (attempts < maxAttempts && isPollingActive) {
             // Wait 20 seconds and try again
             setTimeout(checkOutputData, 20000);
@@ -141,6 +146,7 @@ const Agent4 = () => {
         console.error('Full error details:', err.message);
         
         attempts++;
+        console.log(`❌ Error on attempt ${attempts}/${maxAttempts}:`, err.message);
         if (attempts < maxAttempts && isPollingActive) {
           setTimeout(checkOutputData, 20000);
         } else if (isPollingActive) {
@@ -182,11 +188,16 @@ const Agent4 = () => {
       });
 
       if (response.ok) {
+        const inputResponse = await response.json();
+        console.log('📤 Input Message Response:', inputResponse);
+        
         showWebhookMessage('success', 'Message sent successfully! Processing output...');
         
         // Start polling for output data
         pollForOutputData();
       } else {
+        const errorResponse = await response.text();
+        console.error('❌ Input Message Error Response:', errorResponse);
         throw new Error('Input request failed');
       }
     } catch (error) {
