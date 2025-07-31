@@ -46,7 +46,7 @@ const Agent4 = () => {
       formData.append('pdf', file);
 
       // Upload PDF to the specified endpoint
-      const response = await fetch('https://agents-backends-production.up.railway.app/upload', {
+      const response = await fetch('https://delightful-passion-production.up.railway.app/upload', {
         method: 'POST',
         credentials: 'include',
         body: formData
@@ -84,7 +84,7 @@ const Agent4 = () => {
   };
 
   const pollForOutputData = async () => {
-    const API_BASE = "https://agents-backends-production.up.railway.app";
+    const API_BASE = "https://delightful-passion-production.up.railway.app";
     let attempts = 0;
     const maxAttempts = 15; // 5 minutes max (15 * 20 seconds)
     let isPollingActive = true; // Flag to control polling
@@ -178,7 +178,7 @@ const Agent4 = () => {
 
     try {
       // Send input message to the specified endpoint
-      const response = await fetch('https://agents-backends-production.up.railway.app/input', {
+      const response = await fetch('https://delightful-passion-production.up.railway.app/input', {
         method: 'POST',
         credentials: 'include',
         headers: {

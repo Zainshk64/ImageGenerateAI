@@ -32,7 +32,7 @@ const Agent1 = () => {
 
 
   const pollForEmailData = async () => {
-    const API_BASE = "https://extra-production-980c.up.railway.app";
+    const API_BASE = "https://delightful-passion-production.up.railway.app";
     let attempts = 0;
     const maxAttempts = 15; // 5 minutes max (15 * 20 seconds)
     let isPollingActive = true; // Flag to control polling
@@ -144,7 +144,7 @@ const Agent1 = () => {
 
     try {
       // First, hit the empty endpoint
-      await fetch('https://extra-production-980c.up.railway.app/empty', {
+      await fetch('https://delightful-passion-production.up.railway.app/empty', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

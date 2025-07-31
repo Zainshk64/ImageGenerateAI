@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://agents-backends-production.up.railway.app';
+const API_BASE_URL = 'https://delightful-passion-production.up.railway.app';
 
 class ApiService {
   constructor() {
