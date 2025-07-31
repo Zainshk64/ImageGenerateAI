@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { SessionProvider } from './contexts/SessionContext';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
 import Home from './pages/Home'
 import PromptPage from './pages/PromptPage';
 import Agent1 from './pages/Agent1';
@@ -10,22 +10,27 @@ import Agent3 from './pages/Agent3';
 import Agent4 from './pages/Agent4';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ProtectedRoute from './components/ProtectedRoute';
+import SessionStatus from './components/SessionStatus';
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/prompt" element={<PromptPage />} />
-        <Route path="/agent1" element={<Agent1 />} />
-        <Route path="/agent2" element={<Agent2 />} />
-        <Route path="/agent3" element={<Agent3 />} />
-        <Route path="/agent4" element={<Agent4 />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-    </BrowserRouter>
+    <SessionProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/prompt" element={<ProtectedRoute><PromptPage /></ProtectedRoute>} />
+          <Route path="/agent1" element={<ProtectedRoute><Agent1 /></ProtectedRoute>} />
+          <Route path="/agent2" element={<ProtectedRoute><Agent2 /></ProtectedRoute>} />
+          <Route path="/agent3" element={<ProtectedRoute><Agent3 /></ProtectedRoute>} />
+          <Route path="/agent4" element={<ProtectedRoute><Agent4 /></ProtectedRoute>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+        <SessionStatus show={true} />
+      </BrowserRouter>
+    </SessionProvider>
   );
 };
 
