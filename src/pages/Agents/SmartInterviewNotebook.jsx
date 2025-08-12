@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
+import apiService from '../../services/api';
 
 const SmartInterviewNotebook = () => {
   const [interviewDetails, setInterviewDetails] = useState({
     companyName: '',
     position: '',
-    interviewType: '',
-    notes: ''
+    seniorityLevel: ''
   });
   
-  const [generatedNotes, setGeneratedNotes] = useState('Loading...');
+  const [generatedNotes, setGeneratedNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [webhookMessage, setWebhookMessage] = useState({ show: false, type: '', text: '' });
+  const [message, setMessage] = useState({ show: false, type: '', text: '' });
   const [dataLoaded, setDataLoaded] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(false);
-  const [isPolling, setIsPolling] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,15 +22,14 @@ const SmartInterviewNotebook = () => {
     }));
   };
 
-  const showWebhookMessage = (type, text) => {
-    setWebhookMessage({ show: true, type, text });
+  const showMessage = (type, text) => {
+    setMessage({ show: true, type, text });
     setTimeout(() => {
-      setWebhookMessage({ show: false, type: '', text: '' });
+      setMessage({ show: false, type: '', text: '' });
     }, 3000);
   };
 
   const pollForInterviewData = async () => {
-    const API_BASE = "https://delightful-passion-production.up.railway.app";
     let attempts = 0;
     const maxAttempts = 15;
     let isPollingActive = true;
@@ -40,33 +38,49 @@ const SmartInterviewNotebook = () => {
       if (!isPollingActive) return;
       
       try {
-        const interviewRes = await fetch(`${API_BASE}/interview-notes`);
-        
-        if (!interviewRes.ok) {
-          console.error('API Error - Interview status:', interviewRes.status);
-          throw new Error(`API returned status ${interviewRes.status}`);
-        }
-        
-        const interviewContentType = interviewRes.headers.get('content-type');
-        
-        if (!interviewContentType?.includes('application/json')) {
-          console.error('Invalid content type - Interview:', interviewContentType);
-          throw new Error('API returned non-JSON response');
-        }
-        
-        const interviewData = await interviewRes.json();
-        const interviewText = interviewData && interviewData.length > 0 && interviewData[0].Notes ? interviewData[0].Notes : '';
+        const response = await apiService.apiCall('/interviews/interview-notebook-output');
+        const interviewData = response.data;
         
         console.log('Interview response:', interviewData);
         
-        if (interviewText) {
+        // Handle the API response format
+        let interviewText = '';
+        if (interviewData && interviewData.message) {
+          if (interviewData.message === "No output available") {
+            // Continue polling if no output is available yet
+            attempts++;
+            console.log(`Attempt ${attempts}: Waiting for interview data...`);
+            if (attempts < maxAttempts && isPollingActive) {
+              setTimeout(checkInterviewData, 20000);
+              return;
+            } else if (isPollingActive) {
+              setShowSkeleton(false);
+              setGeneratedNotes('No interview data available after timeout.');
+              setIsLoading(false);
+              isPollingActive = false;
+              showMessage('error', 'Timeout: No data received after 5 minutes.');
+              return;
+            }
+          } else {
+            // If there's actual content in the message
+            interviewText = interviewData.message;
+          }
+        } else if (interviewData && interviewData.length > 0 && interviewData[0].Notes) {
+          // Fallback to old format if needed
+          interviewText = interviewData[0].Notes;
+        } else if (typeof interviewData === 'string') {
+          // If the response is a direct string
+          interviewText = interviewData;
+        }
+        
+        if (interviewText && interviewText !== "No output available") {
           setGeneratedNotes(interviewText);
-          setInterviewDetails({ companyName: '', position: '', interviewType: '', notes: '' });
+          setInterviewDetails({ companyName: '', position: '', seniorityLevel: '' });
           setShowSkeleton(false);
           setDataLoaded(true);
-          setIsPolling(false);
+          setIsLoading(false);
           isPollingActive = false;
-          showWebhookMessage('success', 'Interview notes generated successfully!');
+          showMessage('success', 'Interview notes generated successfully!');
           return true;
         } else {
           attempts++;
@@ -76,9 +90,9 @@ const SmartInterviewNotebook = () => {
           } else if (isPollingActive) {
             setShowSkeleton(false);
             setGeneratedNotes('No interview data available after timeout.');
-            setIsPolling(false);
+            setIsLoading(false);
             isPollingActive = false;
-            showWebhookMessage('error', 'Timeout: No data received after 5 minutes.');
+            showMessage('error', 'Timeout: No data received after 5 minutes.');
           }
         }
       } catch (error) {
@@ -89,9 +103,9 @@ const SmartInterviewNotebook = () => {
         } else if (isPollingActive) {
           setShowSkeleton(false);
           setGeneratedNotes('Error retrieving interview data.');
-          setIsPolling(false);
+          setIsLoading(false);
           isPollingActive = false;
-          showWebhookMessage('error', 'Failed to retrieve interview data.');
+          showMessage('error', 'Failed to retrieve interview data.');
         }
       }
     };
@@ -99,58 +113,60 @@ const SmartInterviewNotebook = () => {
     checkInterviewData();
   };
 
-  const sendToWebhook = async () => {
+  const generateInterviewNotebook = async () => {
     if (!interviewDetails.companyName.trim() || !interviewDetails.position.trim()) {
-      showWebhookMessage('error', 'Please fill in all required fields.');
+      showMessage('error', 'Please fill in all required fields.');
       return;
     }
 
     setIsLoading(true);
     setShowSkeleton(true);
     setDataLoaded(false);
-    setGeneratedNotes('Loading...');
+    setGeneratedNotes('Generating your interview notebook...');
 
     try {
-      const response = await fetch('https://delightful-passion-production.up.railway.app/interview-webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          companyName: interviewDetails.companyName,
-          position: interviewDetails.position,
-          interviewType: interviewDetails.interviewType,
-          notes: interviewDetails.notes
-        }),
-      });
-
-      if (response.ok) {
-        showWebhookMessage('success', 'Interview details sent successfully! Generating notes...');
-        setIsLoading(false);
-        setIsPolling(true);
-        pollForInterviewData();
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Send the interview details to trigger the generation
+      try {
+        await apiService.apiCall('/interview-webhook', {
+          method: 'POST',
+          body: JSON.stringify({
+            companyName: interviewDetails.companyName,
+            position: interviewDetails.position,
+            seniorityLevel: interviewDetails.seniorityLevel
+          }),
+        });
+        
+        console.log('Interview details sent successfully');
+        showMessage('success', 'Interview details sent! Generating notebook...');
+      } catch (webhookError) {
+        console.log('Webhook error:', webhookError);
+        showMessage('info', 'Generating notebook directly...');
       }
+      
+      // Now poll for the generated output
+      await pollForInterviewData();
+      
     } catch (error) {
-      console.error('Error sending interview data:', error);
+      console.error('Error generating interview notebook:', error);
       setShowSkeleton(false);
       setIsLoading(false);
-      showWebhookMessage('error', 'Failed to send interview details. Please try again.');
+      showMessage('error', 'Failed to generate interview notebook. Please try again.');
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="px-4 md:px-8 lg:px-12 py-8">
-        {/* Webhook Message */}
-        {webhookMessage.show && (
+        {/* Message */}
+        {message.show && (
           <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-            webhookMessage.type === 'success' 
+            message.type === 'success' 
               ? 'bg-green-100 text-green-800 border border-green-200' 
-              : 'bg-red-100 text-red-800 border border-red-200'
+              : message.type === 'error'
+              ? 'bg-red-100 text-red-800 border border-red-200'
+              : 'bg-blue-100 text-blue-800 border border-blue-200'
           }`}>
-            {webhookMessage.text}
+            {message.text}
           </div>
         )}
 
@@ -220,7 +236,7 @@ const SmartInterviewNotebook = () => {
               <h3 className="text-lg font-semibold text-green-800 mb-3">Perfect For</h3>
               <ul className="text-gray-700 space-y-2">
                 <li>• Job interviews</li>
-                <li>• Company research</li>
+                <li>• Company research</li> 
                 <li>• Interview preparation</li>
                 <li>• Career development</li>
               </ul>
@@ -262,27 +278,25 @@ const SmartInterviewNotebook = () => {
               </div>
             </div>
             
-           
-            
             <div>
-              <label className="block text-gray-700 font-medium mb-2">Discription</label>
-              <textarea
-                name="notes"
-                value={interviewDetails.notes}
+              <label className="block text-gray-700 font-medium mb-2">Seniority Level</label>
+              <input
+                type="text"
+                name="seniorityLevel"
+                value={interviewDetails.seniorityLevel}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Any additional information about the interview, company, or your background..."
-                rows="4"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., Junior, Mid-level, Senior, Lead"
               />
             </div>
             
             <div className="text-center">
               <button 
-                onClick={sendToWebhook}
-                disabled={isLoading || isPolling}
+                onClick={generateInterviewNotebook}
+                disabled={isLoading}
                 className="inline-flex items-center justify-center gap-2 font-medium transition-colors bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-lg px-12 py-3 rounded-2xl shadow-colored"
               >
-                {isLoading ? 'Generating Notes...' : isPolling ? 'Waiting for Data...' : 'Generate Interview Notebook'}
+                {isLoading ? 'Generating Notebook...' : 'Generate Interview Notebook'}
               </button>
             </div>
           </div>

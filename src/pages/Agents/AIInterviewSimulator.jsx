@@ -297,40 +297,7 @@ const AIInterviewSimulator = () => {
                   />
                 </div>
               </div>
-              
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Interview Type</label>
-                  <select
-                    name="interviewType"
-                    value={interviewSettings.interviewType}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select interview type</option>
-                    <option value="behavioral">Behavioral Interview</option>
-                    <option value="technical">Technical Interview</option>
-                    <option value="case-study">Case Study Interview</option>
-                    <option value="general">General Interview</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">Difficulty Level</label>
-                  <select
-                    name="difficulty"
-                    value={interviewSettings.difficulty}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select difficulty</option>
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </select>
-                </div>
-              </div>
-              
+            
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Industry</label>
                 <input

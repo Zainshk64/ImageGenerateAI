@@ -5,28 +5,28 @@ const Agent2 = () => {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
 
-  // const blogCards = [
-  //   {
-  //     id: 1,
-  //     image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop',
-  //     title: 'SEO Blog Posts'
-  //   },
-  //   {
-  //     id: 2,
-  //     image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=300&fit=crop',
-  //     title: 'Thought Leadership'
-  //   },
-  //   {
-  //     id: 3,
-  //     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
-  //     title: 'Content Marketing'
-  //   },
-  //   {
-  //     id: 4,
-  //     image: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=400&h=300&fit=crop',
-  //     title: 'Guest Posts'
-  //   }
-  // ];
+  const blogCards = [
+    {
+      id: 1,
+      image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop',
+      title: 'SEO Blog Posts'
+    },
+    {
+      id: 2,
+      image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=300&fit=crop',
+      title: 'Thought Leadership'
+    },
+    {
+      id: 3,
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+      title: 'Content Marketing'
+    },
+    {
+      id: 4,
+      image: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=400&h=300&fit=crop',
+      title: 'Guest Posts'
+    }
+  ];
 
   const handleCardClick = (cardId) => {
     console.log(`Blog card ${cardId} clicked`);
