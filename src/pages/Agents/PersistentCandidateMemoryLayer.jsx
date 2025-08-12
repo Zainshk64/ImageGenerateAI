@@ -255,21 +255,20 @@ const Agent4 = () => {
             Persistent Candidate Memory Layer
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-[1.05]">
-            AI Agent 4
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 leading-tight">
             <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-              {" "}Memory Expert
+              Memory Expert
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
             Advanced memory system that maintains persistent candidate data and preferences.
           </p>
         </div>
         
         <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">About This Agent</h2>
-          <p className="text-gray-700 mb-8 text-lg">
+          <h2 className="text-lg font-semibold text-gray-800 mb-6">About This Agent</h2>
+          <p className="text-gray-700 mb-8 text-base">
             Agent 4 provides a persistent memory layer that maintains candidate data, preferences, 
             and interaction history. This enables personalized experiences and continuous learning 
             across all interactions.
@@ -277,7 +276,7 @@ const Agent4 = () => {
           
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <div className="bg-blue-50 p-6 rounded-2xl">
-              <h3 className="text-lg font-semibold text-blue-800 mb-3">Key Features</h3>
+              <h3 className="text-base font-semibold text-blue-800 mb-3">Key Features</h3>
               <ul className="text-gray-700 space-y-2">
                 <li>• Persistent data storage</li>
                 <li>• Candidate preference tracking</li>
@@ -287,7 +286,7 @@ const Agent4 = () => {
             </div>
             
             <div className="bg-green-50 p-6 rounded-2xl">
-              <h3 className="text-lg font-semibold text-green-800 mb-3">Use Cases</h3>
+              <h3 className="text-base font-semibold text-green-800 mb-3">Use Cases</h3>
               <ul className="text-gray-700 space-y-2">
                 <li>• User profile management</li>
                 <li>• Preference learning</li>
@@ -300,7 +299,7 @@ const Agent4 = () => {
 
         {/* File Upload & Input/Output Section */}
         <div className="glass-card rounded-3xl overflow-hidden shadow-soft-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Memory Layer Interaction</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-6">Memory Layer Interaction</h2>
           <p className="text-gray-600 mb-6 text-center">Upload a PDF and interact with the memory system</p>
           <div className="max-w-md mx-auto">
             {/* File Upload */}

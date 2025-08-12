@@ -1,32 +1,32 @@
 import React, { useState } from 'react';
-import Card from '../components/Card';
+import Card from '../../components/Card';
 
 const Agent2 = () => {
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
 
-  const blogCards = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop',
-      title: 'SEO Blog Posts'
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=300&fit=crop',
-      title: 'Thought Leadership'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
-      title: 'Content Marketing'
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=400&h=300&fit=crop',
-      title: 'Guest Posts'
-    }
-  ];
+  // const blogCards = [
+  //   {
+  //     id: 1,
+  //     image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400&h=300&fit=crop',
+  //     title: 'SEO Blog Posts'
+  //   },
+  //   {
+  //     id: 2,
+  //     image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=400&h=300&fit=crop',
+  //     title: 'Thought Leadership'
+  //   },
+  //   {
+  //     id: 3,
+  //     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+  //     title: 'Content Marketing'
+  //   },
+  //   {
+  //     id: 4,
+  //     image: 'https://images.unsplash.com/photo-1432821596592-e2c18b78144f?w=400&h=300&fit=crop',
+  //     title: 'Guest Posts'
+  //   }
+  // ];
 
   const handleCardClick = (cardId) => {
     console.log(`Blog card ${cardId} clicked`);
@@ -64,18 +64,18 @@ Content Suggestions:
     <div className="px-4 md:px-14 lg:px-24 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-3 glass-card text-blue-700 shadow px-3 py-3 rounded-full text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-3 glass-card text-blue-700 shadow px-3 py-2 rounded-full text-xs font-semibold mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-file-text h-5 w-5"
+              className="lucide lucide-file-text h-4 w-4"
             >
               <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
               <polyline points="14 2 14 8 20 8"/>
@@ -86,14 +86,13 @@ Content Suggestions:
             Blog Writing
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-[1.05]">
-            AI Agent 2
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 leading-tight">
             <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-              {" "}Blog Expert
+              Blog Expert
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
             Your go-to specialist for creating engaging and SEO-optimized blog content.
           </p>
         </div>

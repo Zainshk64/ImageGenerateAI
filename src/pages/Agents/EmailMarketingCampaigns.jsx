@@ -201,18 +201,18 @@ const Agent1 = () => {
           </div>
         )}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-3 glass-card text-blue-700 shadow px-3 py-3 rounded-full text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-3 glass-card text-blue-700 shadow px-3 py-2 rounded-full text-xs font-semibold mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="lucide lucide-mail h-5 w-5"
+              className="lucide lucide-mail h-4 w-4"
             >
               <rect width="20" height="16" x="2" y="4" rx="2"/>
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
@@ -220,14 +220,13 @@ const Agent1 = () => {
             Email Marketing Campaigns
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-gray-900 leading-[1.05]">
-            AI Agent 1
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-900 leading-tight">
             <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
-              {" "}Email Expert
+              Email Expert
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
             Transform your email marketing with AI-powered campaign optimization. 
             Create compelling A/B test content that drives engagement and conversions.
           </p>
